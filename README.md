@@ -1,131 +1,108 @@
-# YOLOv8 Object Detection with OpenCV + ONNX + CUDA (Windows)
+# YOLOv12 TensorRT CPP
 
-This project demonstrates real-time object detection using the YOLOv8 ONNX model with OpenCV's DNN module accelerated by CUDA.
+![C++](https://img.shields.io/badge/language-C++-blue.svg)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.5.4-brightgreen.svg)
+![CMake](https://img.shields.io/badge/CMake-3.12-blue.svg)
+![CUDA](https://img.shields.io/badge/CUDA-12.4-green.svg)
+![TensorRT](https://img.shields.io/badge/TensorRT-10.8.0-orange.svg)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1kqo6J6jxTiGFjpCHrv6HA5InOIp07Awt?usp=sharing)
+![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)
 
-## 🚀 Features
+## Overview  
 
-- 🧠 YOLOv8 (nano) ONNX model  
-- 🖥️ Real-time webcam input  
-- ⚡ CUDA-accelerated inference (OpenCV DNN + CUDA)  
-- 🛠️ C++ implementation with OpenCV 4.11  
-- 🧱 Built using CMake and Visual Studio on Windows  
+This project is a high-performance **C++ implementation** for real-time object detection using **YOLOv12**. It leverages **TensorRT** for optimized inference and **CUDA** for accelerated processing, enabling efficient detection on both images and videos. Designed for maximum speed and accuracy, this implementation ensures seamless integration with YOLOv12 models, making it suitable for deployment in research, production, and real-time applications.  
 
-## 🧾 Project Structure
+**Google Colab Support**: To make GPU-based inference more accessible, a **fully configured Google Colab notebook** is provided. This notebook allows users to **run the entire project from start to finish** using a **Google Colab T4 GPU**, including compiling and executing C++ code directly in Colab. This is especially helpful for those who **struggle with local GPU availability**.  
 
+## **Note:** The Google Colab notebook is not meant for performance testing, as the performance will be poor. It is intended for learning how to integrate C++, TensorRT, and CUDA.
+
+
+
+<p align="center">
+  <img src="asset/tradeoff.svg" width=90%> <br>
+  Comparison with popular methods in terms of latency-accuracy (left) and FLOPs-accuracy (right) trade-offs
+</p>
+
+
+
+## Output
+
+Below are examples of the output for both image and video inference:
+
+<div align="center">
+  <h3>Image Output</h3>
+  <img src="asset/frame_0.jpg" alt="Image Output" width="500">
+  
+  <h3>Video Output</h3>
+  <img src="asset/output_gif.gif" alt="Video Output as GIF" width="500">
+</div>
+
+
+
+## Features
+
+- **TensorRT Integration**: Optimized deep learning inference using **NVIDIA TensorRT**, ensuring high-speed execution on **GPU**.
+- **Efficient Memory Management**: Uses **CUDA buffers** and **TensorRT engine caching** for improved performance.
+- **Real-Time Inference**: Supports **image** and **video** processing, allowing smooth detection across frames.  
+- **Custom Preprocessing & Postprocessing**: Handles **image normalization, tensor conversion, and result decoding** directly in CUDA for minimal overhead.  
+- **High-Performance Video Processing**: Efficiently processes video streams using OpenCV while maintaining low-latency inference with TensorRT.
+- **Google Colab Support**: A **ready-to-use Google Colab Notebook** is provided to **run the project in Google Colab**, enabling easy setup and execution without requiring a local GPU.  
+
+## Requirements
+
+Before building the project, ensure that the following dependencies are installed on your system:
+
+- **C++ Compiler**: Compatible with **C++17** or higher.  
+- **CMake**: Version **3.12** or higher.  
+- **CUDA**: Version **12.4** .  
+- **TensorRT**: Tested with **TensorRT 10.8.0** for high-performance inference.  
+- **OpenCV**: Version **4.5.4** or higher for image and video processing.  
+
+## Installation And Usage
+
+### 1- Generate ONNX models
+Generate the ONNX version of the YOLOv12 model; You can use the same way defined in this repo [YOLOv12 ONNX CPP](https://github.com/bhatiashaurya/YOLOv12-ONNX-CPP.git).
+
+### 2- Clone Repository
+Clone the repository to your local machine:
+
+```bash 
+git https://github.com/bhatiashaurya/YOLOv12-TensorRT-CPP.git
+cd YOLOv12-TensorRT-CPP
 ```
-/self
-├── main.cpp                # Core object detection code
-├── yolov8n.onnx            # YOLOv8 ONNX model file
-├── coco.names              # COCO dataset class names
-├── CMakeLists.txt          # Build configuration
-└── README.md               # This file
-```
 
-## 🛠️ Requirements
-
-- CUDA Toolkit 12.8  
-- cuDNN for CUDA 12.8  
-- Visual Studio 2019 or later  
-- CMake 3.10+  
-- OpenCV 4.11 (built from source with CUDA and DNN support)  
-
-## 🧰 Setup Instructions
-
-### 1. Clone the Repository
-
+### 3- Build the C++ Code
+  **Ensure that OpenCV and TensorRT are installed. Set the correct paths for these libraries in the** `CMakeLists.txt` **file.**
+  
 ```bash
-git clone https://github.com/your-username/object-detection-onnx-cuda.git
-cd object-detection-onnx-cuda
-```
-
-### 2. Download YOLOv8n ONNX Model
-
-```bash
-wget https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.onnx
-```
-
-Or download it manually from https://github.com/ultralytics/ultralytics
-
-### 3. Add Class Names
-
-Create a file called coco.names with the 80 class names from the COCO dataset or download from:  
-https://github.com/pjreddie/darknet/blob/master/data/coco.names
-
-### 4. Build OpenCV with CUDA (if not already)
-
-Clone OpenCV and OpenCV_contrib and configure with CMake:
-
-```bash
-cmake -D WITH_CUDA=ON ^
-      -D WITH_CUDNN=ON ^
-      -D OPENCV_DNN_CUDA=ON ^
-      -D BUILD_opencv_world=ON ^
-      -D CUDA_ARCH_BIN=8.6 ^
-      -D CMAKE_BUILD_TYPE=Release ^
-      -D CMAKE_INSTALL_PREFIX=C:/opencv/opencv/build/install ..
-```
-
-Build with:
-
-```bash
-cmake --build . --config Release --target INSTALL
-```
-
-## 🧪 Build This Project
-
-### 1. Make Sure Paths Are Set in CMakeLists.txt
-
-- OpenCV_DIR = "C:/opencv/opencv/build/x64/vc16/lib"
-- ONNXRUNTIME_DIR = "D:/onnxruntime-windows-x64-gpu-1.17.0"
-- CUDA Toolkit = "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.8"
-
-### 2. Build with CMake
-
-```bash
-mkdir build
-cd build
+mkdir build && cd build
 cmake ..
 cmake --build . --config Release
 ```
 
-## ▶️ Run the Program
+### 4- Create a TensorRT Engine
+
+Convert the ONNX model to a TensorRT engine:
+From the build directory, run:
+```bash
+./yolov12-tensorrt yolo12n.onnx ""
+```
+
+### 5- Run Inference on an Image
+
+Perform object detection on an image:
 
 ```bash
-./object_detection.exe
+./yolov12-tensorrt yolo12n.engine "zidane.jpg"
 ```
 
-It will launch your default webcam and run detection in real-time using CUDA.
+### 6- Run Inference on a Video
 
-## ⚠️ Troubleshooting
+Perform object detection on a video:
 
-- Make sure cuDNN and CUDA versions match (both should be 12.8)  
-- Rebuild OpenCV with CUDA support if DNN_BACKEND_CUDA errors occur  
-- Ensure all DLLs (onnxruntime + OpenCV + CUDA) are discoverable in PATH  
-
-## 📄 Model Info
-
-| Model     | Format | Size | Speed (CUDA) |
-|-----------|--------|------|--------------|
-| YOLOv8n   | ONNX   | ~6MB | ~30 FPS      |
-
-## 📸 Example Output
-
-You can include a sample screenshot here to show live detection:
-
-```
-docs/sample_output.png
+```bash
+./yolov12-tensorrt yolo12n.engine "road.mp4"
 ```
 
-## 📜 License
-
+### License
 This project is licensed under the MIT License.
-
-## 🙋‍♂️ Credits
-
-- [Ultralytics](https://github.com/ultralytics) for YOLOv8  
-- OpenCV contributors  
-- Microsoft ONNX Runtime
-
-## 📬 Contact
-
-Feel free to open an issue or discussion if you run into problems or want to suggest improvements.
